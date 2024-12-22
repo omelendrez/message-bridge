@@ -2,39 +2,32 @@
 
 A TypeScript-based message routing system that handles email and SMS communications through a microservices architecture. The system uses Apache Kafka for reliable message queuing and implements a gateway-processor pattern for scalable message handling.
 
-## System Overview
+## Features
 
-### Gateway Service
-
-- Receives message requests via REST API
-- Validates and processes incoming messages
-- Generates unique message IDs using UUID
-- Publishes messages to Kafka queue
-
-### Message Processor
-
-- Consumes messages from Kafka queue
-- Routes messages to appropriate delivery service
-- Handles email delivery via Email Service
-- Manages SMS delivery via SMS Service
+- Asynchronous message processing
+- Multiple delivery channels (Email, SMS)
+- Retry mechanism with exponential backoff
+- Health checks and monitoring
+- Type-safe API with request validation
+- Structured error handling
+- Metrics collection
 
 ## Project Structure
 
 ```plaintext
 message-bridge/
 ├── src/
-│ ├── gateway/
-│ │ ├── controllers/
-│ │ │ └── message.controller.ts # Handles incoming message requests
-│ │ ├── models/
-│ │ │ └── message.model.ts # Message type definitions
-│ │ └── services/
-│ │ └── kafka.service.ts # Kafka integration
-│ └── processor/
-│ └── services/
-│ ├── email.service.ts # Email delivery service
-│ ├── sms.service.ts # SMS delivery service
-│ └── message-processor.service.ts # Main processing logic
+│   ├── gateway/
+│   │   ├── controllers/     # HTTP request handlers
+│   │   ├── services/       # Kafka service
+│   │   └── types/         # API type definitions
+│   ├── processor/
+│   │   ├── services/      # Email and SMS services
+│   │   └── utils/         # Retry mechanism
+│   └── shared/
+│       ├── config/        # Configuration
+│       ├── models/        # Shared types and errors
+│       └── services/      # Logging and metrics
 ```
 
 ## Installation
@@ -60,22 +53,29 @@ cp .env.example .env
 
 ## Configuration
 
-Create a `.env` file with the following variables:
+Required environment variables:
 
 ```env
 # Kafka Configuration
 KAFKA_BROKERS=localhost:9092
 KAFKA_TOPIC=messages
+KAFKA_GROUP_ID=message-processor
 
 # Email Configuration
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
-SMTP_USER=your-username
-SMTP_PASS=your-password
+SMTP_USER=your-smtp-username
+SMTP_PASS=your-smtp-password
+SMTP_FROM=noreply@example.com
 
 # SMS Configuration
-SMS_API_KEY=your-api-key
-SMS_API_SECRET=your-secret
+TWILIO_ACCOUNT_SID=your-account-sid
+TWILIO_AUTH_TOKEN=your-auth-token
+TWILIO_PHONE_NUMBER=your-phone-number
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
 ```
 
 ## API Reference
@@ -93,12 +93,13 @@ Request Body:
   "subject": "Hello",
   "content": "Message content",
   "metadata": {
-    "priority": "high"
+    "priority": "high",
+    "html": "<p>HTML content</p>"
   }
 }
 ```
 
-Response:
+Response (202 Accepted):
 
 ```json
 {
@@ -107,10 +108,18 @@ Response:
 }
 ```
 
-### Message Methods
+### Health Check
 
-- `EMAIL`: Send via email service
-- `SMS`: Send via SMS service
+`GET /health`
+
+Response:
+
+```json
+{
+  "kafka": true,
+  "timestamp": "2024-02-28T12:00:00.000Z"
+}
+```
 
 ## Running the Services
 
@@ -126,24 +135,46 @@ Start Processor:
 npm run start:processor
 ```
 
-## Dependencies
+## Docker Support
 
-Key dependencies from package.json:
+Build image:
 
-- TypeScript
-- Kafka.js for Kafka integration
-- UUID for message ID generation
-- Express (assumed for API)
-- Nodemailer (assumed for email service)
+```bash
+docker build -t message-bridge .
+```
 
-## Contributing
+Run container:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+```bash
+docker run -p 3000:3000 --env-file .env message-bridge
+```
+
+## Development
+
+Build:
+
+```bash
+npm run build
+```
+
+Format code:
+
+```bash
+npm run format
+```
+
+Lint:
+
+```bash
+npm run lint
+```
+
+Test:
+
+```bash
+npm run test
+```
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License
