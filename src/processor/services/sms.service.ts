@@ -1,5 +1,5 @@
 import twilio from 'twilio'
-import { Message } from '../models/message.model'
+import { Message } from '../../gateway/models/message.model'
 
 export class SmsService {
   private client: twilio.Twilio
