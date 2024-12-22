@@ -12,10 +12,15 @@ export class SmsService {
   }
 
   async send(message: Message): Promise<void> {
-    await this.client.messages.create({
-      body: message.content,
-      to: message.recipient,
-      from: process.env.TWILIO_PHONE_NUMBER
-    })
+    // Send to all recipients in parallel
+    await Promise.all(
+      message.recipients.map((recipient) =>
+        this.client.messages.create({
+          body: message.content,
+          to: recipient,
+          from: process.env.TWILIO_PHONE_NUMBER
+        })
+      )
+    )
   }
 }

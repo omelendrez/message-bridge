@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import { Message } from '../models/message.model'
+import { Message } from '../../gateway/models/message.model'
 
 export class EmailService {
   private transporter: nodemailer.Transporter
@@ -19,7 +19,7 @@ export class EmailService {
   async send(message: Message): Promise<void> {
     await this.transporter.sendMail({
       from: process.env.EMAIL_FROM,
-      to: message.recipient,
+      to: message.recipients,
       subject: message.subject,
       text: message.content
     })

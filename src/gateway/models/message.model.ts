@@ -6,9 +6,9 @@ export enum MessageMethod {
 export interface Message {
   id: string
   method: MessageMethod
-  recipient: string
   content: string
-  subject?: string // For emails
+  recipients: string[]
+  subject?: string
   metadata?: Record<string, any>
   createdAt: Date
 }

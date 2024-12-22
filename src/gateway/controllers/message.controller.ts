@@ -10,7 +10,7 @@ export class MessageController {
       const message: Message = {
         id: uuidv4(),
         method: req.body.method,
-        recipient: req.body.recipient,
+        recipients: req.body.recipients,
         content: req.body.content,
         subject: req.body.subject,
         metadata: req.body.metadata,
