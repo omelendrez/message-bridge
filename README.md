@@ -175,6 +175,43 @@ Test:
 npm run test
 ```
 
+## Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Gateway
+    participant Kafka
+    participant Processor
+    participant EmailService
+    participant SMSService
+    participant StatusRepo
+
+    Client->>Gateway: POST /api/messages
+    Note over Gateway: Validate message
+    Gateway->>Gateway: Generate UUID
+    Gateway->>Kafka: Publish message
+    Gateway-->>Client: 202 Accepted
+
+    Kafka->>Processor: Consume message
+    Processor->>StatusRepo: Update status (pending)
+
+    alt Email Message
+        Processor->>EmailService: Send email
+        EmailService-->>Processor: Success/Failure
+    else SMS Message
+        Processor->>SMSService: Send SMS
+        SMSService-->>Processor: Success/Failure
+    end
+
+    alt Success
+        Processor->>StatusRepo: Update status (delivered)
+    else Failure
+        Note over EmailService,SMSService: Retry with exponential backoff
+        Processor->>StatusRepo: Update status (failed)
+    end
+```
+
 ## License
 
 MIT License
