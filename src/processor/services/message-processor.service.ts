@@ -1,7 +1,11 @@
 import { Kafka, Consumer } from 'kafkajs'
 import { EmailService } from './email.service'
 import { SmsService } from './sms.service'
-import { Message, MessageMethod, MessageStatus } from '../models/message.model'
+import {
+  Message,
+  MessageMethod,
+  MessageStatus
+} from '../../gateway/models/message.model'
 import { MessageStatusRepository } from '../repositories/message-status.repository'
 
 export class MessageProcessorService {
@@ -47,7 +51,7 @@ export class MessageProcessorService {
       }
 
       await this.updateMessageStatus(message.id, 'delivered')
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to process message ${message.id}:`, error)
       await this.updateMessageStatus(message.id, 'failed', error.message)
     }

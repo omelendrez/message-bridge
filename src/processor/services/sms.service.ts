@@ -1,5 +1,7 @@
 import twilio from 'twilio'
-import { Message } from '../../gateway/models/message.model'
+import { Message } from '../../shared/models'
+import { withRetry } from '../utils/retry'
+import { DeliveryError } from '../../shared/models/error.model'
 
 export class SmsService {
   private client: twilio.Twilio
@@ -12,15 +14,25 @@ export class SmsService {
   }
 
   async send(message: Message): Promise<void> {
-    // Send to all recipients in parallel
-    await Promise.all(
-      message.recipients.map((recipient) =>
-        this.client.messages.create({
-          body: message.content,
-          to: recipient,
-          from: process.env.TWILIO_PHONE_NUMBER
-        })
+    try {
+      await withRetry(
+        async () => {
+          await Promise.all(
+            message.recipients.map((recipient) =>
+              this.client.messages.create({
+                body: message.content,
+                to: recipient,
+                from: process.env.TWILIO_PHONE_NUMBER
+              })
+            )
+          )
+        },
+        3, // max attempts
+        2000 // base delay in ms
       )
-    )
+    } catch (error) {
+      console.error('Failed to send SMS after retries:', error)
+      throw new DeliveryError('SMS sending failed permanently')
+    }
   }
 }

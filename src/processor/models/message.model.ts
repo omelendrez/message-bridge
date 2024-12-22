@@ -1,13 +1,13 @@
 export enum MessageMethod {
-  EMAIL = 'email',
-  SMS = 'sms'
+  EMAIL = 'EMAIL',
+  SMS = 'SMS'
 }
 
 export interface Message {
   id: string
   method: MessageMethod
-  content: string
   recipients: string[]
+  content: string
   subject?: string
   metadata?: Record<string, any>
   createdAt: Date
